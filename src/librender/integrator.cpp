@@ -14,6 +14,7 @@ void elxSamplingIntegrator::render(
     // do the render job
     float invU = 1.0f / job->width, invV = 1.0f / job->height;
     elxSampler sampler;
+    float pct = .0f;
     for (int u = 0; u < job->width; ++u){
         for (int v = 0; v < job->height; ++v) {
             elxRay ray;
@@ -29,6 +30,10 @@ void elxSamplingIntegrator::render(
             spectrum /= (float)job->spp;
             
             job->setPixel(u, v, spectrum);
+        }
+        if ((invU*u-pct)>0.1f){
+            std::cout<<"Finish "<<(invU*u*100)<<"%\n";
+            pct +=0.1f;
         }
     }
     job->writeTga();

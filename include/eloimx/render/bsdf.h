@@ -15,12 +15,13 @@ struct elxBSDFSamplingRecord {
     // relative index of refraction in the sampled direction
     float eta;
     
-    elxBSDFSamplingRecord(elxIntersection *itsPtr, elxSampler *samplerPtr):itsPtr(itsPtr), samplerPtr(samplerPtr), eta(1.0f){ }
+    elxBSDFSamplingRecord(elxIntersection *itsPtr, elxSampler *samplerPtr):itsPtr(itsPtr), samplerPtr(samplerPtr), eta(1.0f), wi(itsPtr->wi){ }
 
-    elxBSDFSamplingRecord(elxIntersection *itsPtr, const Vec3f &wo):itsPtr(itsPtr), wo(wo), eta(1.0f) { }
+    elxBSDFSamplingRecord(elxIntersection *itsPtr, const Vec3f &wi):itsPtr(itsPtr), wi(wi), eta(1.0f) { }
 
     elxBSDFSamplingRecord(elxIntersection *itsPtr, const Vec3f &wi, const Vec3f &wo):
         itsPtr(itsPtr), wi(wi), wo(wo), eta(1.0f){ }
+
 
 private:
     elxBSDFSamplingRecord() { }

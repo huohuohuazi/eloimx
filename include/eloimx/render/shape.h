@@ -43,6 +43,8 @@ public:
 
     virtual float area() const=0;
 
+    virtual Vec3f getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const=0;
+
     virtual std::string toString() const=0;
 protected:
     Shape() { }
@@ -65,6 +67,8 @@ public:
 
     virtual float area() const;
 
+    virtual Vec3f getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const;
+
     virtual std::string toString() const;
 
 protected:
@@ -84,6 +88,8 @@ public:
     virtual void sampleDirect(elxDirectSamplingRecord &dRec, const Point2f &sample) const;
 
     virtual float area() const;
+
+    virtual Vec3f getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const;
 
     virtual std::string toString() const;
 
@@ -109,6 +115,8 @@ public:
     virtual void samplePosition(elxDirectSamplingRecord &dRec, const Point2f &sample) const;
 
     virtual float area() const;
+
+    virtual Vec3f getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const;
 
     virtual std::string toString() const;
 

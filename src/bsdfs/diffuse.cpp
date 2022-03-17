@@ -1,9 +1,11 @@
 #include <eloimx/bsdfs/diffuse.h>
 
+// {1} material
+
 ELX_NAMESPACE_BEGIN
 // todo
 elxSpectrum elxDiffuse::sample(elxBSDFSamplingRecord &bRec, const Point2f &sample) const {
-    std::cout<<"This should not be executed, sample function\n";
+    std::cout<<"This should not be executed, Diffuse::sample function\n";
     if (elxFrame::cosTheta(bRec.wi) <= 0){
         return elxSpectrum(.0f);
     }

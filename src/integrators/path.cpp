@@ -55,8 +55,14 @@ elxSpectrum elxPathTracer::Li(const elxRay &r,
         // end the tracing if
         // 1. path length exceeds the specifed maximum
         // 2. encounter the light leak
+
         if ((rRec.depth >= m_maxDepth && m_maxDepth > 0)
             || (m_strictNormals && dot(ray.d, its.geoFrame.Yprime)*elxFrame::cosTheta(its.wi) >= 0)) {
+            /*
+            std::cout<<"Break up to conflict between shFrame and geoFrame\n";
+            std::cout<<"The ray : "<<ray.toString()<<"\n";
+            std::cout<<"The frame : "<<its.geoFrame.toString()<<"\n";
+            */
             break;
         }
         if (bsdf == nullptr) {
@@ -95,6 +101,7 @@ elxSpectrum elxPathTracer::Li(const elxRay &r,
         Vec3f wo = its.toWorld(bRec.wo);
         float woDotGeoN = glm::dot(its.geoFrame.Yprime, wo);
         if(m_strictNormals && woDotGeoN * elxFrame::cosTheta(bRec.wo) <= 0){
+            std::cout<<"wo : ("<<bRec.wo.x<<", "<<bRec.wo.y<<", "<<bRec.wo.z<<")\n";
             std::cout<<"break up to light leak\n";
             break;
         }
@@ -124,7 +131,7 @@ elxSpectrum elxPathTracer::Li(const elxRay &r,
         
         /*----------------- indirect illumination ------------------*/
         if (!its.isValid()) break;
-
+        rRec.depth++;
         // don't understand
         /*
         if (rRec.depth++ >= m_rrDepth) {

@@ -89,6 +89,14 @@ float elxTriangle::area() const {
     return 0.5f * vecLen(glm::cross(v1, v2));    
 }
 
+Vec3f elxTriangle::getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const {
+    // two side shape
+    // just make the normal and wi in the same side
+    if (glm::dot(ray.d, nDir) > 0)
+        return -nDir;
+    else return nDir;
+}
+
 std::string elxTriangle::toString() const {
     float* vertices = (float *)rtcGetGeometryBufferData(shapePtr, RTC_BUFFER_TYPE_VERTEX, 0);
     std::string bsdfDes     = (bsdf==nullptr)?"No bsdf":bsdf->toString();
@@ -177,6 +185,14 @@ void elxRectangle::sampleDirect(elxDirectSamplingRecord &dRec, const Point2f &sa
     dRec.pdf *= (dp != 0)? (dRec.dist*dRec.dist / std::abs(dp)) : .0f;        
 }
 
+Vec3f elxRectangle::getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const {
+    // two side shape
+    // just make the normal and wi in the same side
+    if (glm::dot(ray.d, nDir) > 0)
+        return -nDir;
+    else return nDir;
+}   
+
 std::string elxRectangle::toString() const {
     float* vertices = (float *)rtcGetGeometryBufferData(shapePtr, RTC_BUFFER_TYPE_VERTEX, 0);
     std::string bsdfDes     = (bsdf==nullptr)?"No bsdf":bsdf->toString();
@@ -237,11 +253,9 @@ void elxSphereIntersectFunc(const RTCIntersectFunctionNArguments *args){
     const float rcpA = 1.0f / A;
     const float t0 = 0.5f * rcpA * (-B - Q);
     const float t1 = 0.5f * rcpA * (-B + Q);
-
     RTCHit potentialHit;
     potentialHit.u = potentialHit.v =.0f;
     potentialHit.geomID = sphere->getGeomID();
-
     if ((RTCRayN_tnear(ray, 1, 0) < t0) & (t0 < RTCRayN_tfar(ray, 1, 0))) {
         int imask;
         bool mask = 1;
@@ -271,37 +285,36 @@ void elxSphereIntersectFunc(const RTCIntersectFunctionNArguments *args){
         } else {
             RTCRayN_tfar(ray, 1, 0) = old_t;
         }
-        if ((RTCRayN_tnear(ray, 1, 0) < t1) & (t1 < RTCRayN_tfar(ray, 1, 0))) {
-            int imask;
-            bool mask = 1;
-            {
-                imask = mask ? -1 : 0;
-            }
+    }
+    if ((RTCRayN_tnear(ray, 1, 0) < t1) & (t1 < RTCRayN_tfar(ray, 1, 0))) {
+        int imask;
+        bool mask = 1;
+        {
+            imask = mask ? -1 : 0;
+        }
+         Vec3f Ng = ray_org + t1 * ray_dir - sphere->center;
+        potentialHit.Ng_x = Ng.x;
+        potentialHit.Ng_y = Ng.y;
+        potentialHit.Ng_z = Ng.z;
 
-            Vec3f Ng = ray_org + t1 * ray_dir - sphere->center;
-            potentialHit.Ng_x = Ng.x;
-            potentialHit.Ng_y = Ng.y;
-            potentialHit.Ng_z = Ng.z;
+        RTCFilterFunctionNArguments fargs;
+        fargs.valid = (int *)&imask;
+        fargs.geometryUserPtr = ptr;
+        fargs.context = args->context;
+        fargs.ray = (RTCRayN *) args->rayhit;
+        fargs.hit = (RTCHitN *) &potentialHit;
+        fargs.N = 1;
 
-            RTCFilterFunctionNArguments fargs;
-            fargs.valid = (int *)&imask;
-            fargs.geometryUserPtr = ptr;
-            fargs.context = args->context;
-            fargs.ray = (RTCRayN *) args->rayhit;
-            fargs.hit = (RTCHitN *) &potentialHit;
-            fargs.N = 1;
+        const float old_t = RTCRayN_tfar(ray, 1, 0);
+        RTCRayN_tfar(ray, 1, 0) = t1;
+        rtcFilterIntersection(args, &fargs);
 
-            const float old_t = RTCRayN_tfar(ray, 1, 0);
-            RTCRayN_tfar(ray, 1, 0) = t1;
-            rtcFilterIntersection(args, &fargs);
-
-            if(imask == -1){
-                // when in occludedFunc
-                //RTCRayN_tfar(ray, 1, 0) = -std::numeric_limits<float>::infinity();
-                *((RTCHit *)hit) = potentialHit;
-            } else {
-                RTCRayN_tfar(ray, 1, 0) = old_t;
-            }
+        if(imask == -1){
+            // when in occludedFunc
+            //RTCRayN_tfar(ray, 1, 0) = -std::numeric_limits<float>::infinity();
+            *((RTCHit *)hit) = potentialHit;
+        } else {
+            RTCRayN_tfar(ray, 1, 0) = old_t;
         }
     }
 }
@@ -337,6 +350,12 @@ void elxSphere::samplePosition(elxDirectSamplingRecord &dRec, const Point2f &sam
 float elxSphere::area() const {
     return .0f;
 }
+
+Vec3f elxSphere::getNormal(const elxRay &ray, const Point3f &hit, const Vec3f &nDir) const {
+    // just return the hit - center
+    return hit - center;
+}
+
 //todo
 std::string elxSphere::toString() const {
     return "";

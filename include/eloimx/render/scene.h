@@ -46,7 +46,7 @@ public:
         rayhit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
 
         rtcIntersect1(rtcScene, &context, &rayhit);
-
+    
         if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
             its.t = std::numeric_limits<float>::infinity();
             return false;
@@ -63,10 +63,8 @@ public:
             Vec3f geoNormal = Vec3f(rayhit.hit.Ng_x, 
                                     rayhit.hit.Ng_y,
                                     rayhit.hit.Ng_z);
-            // compute the actually normal
-            if (dot(geoNormal, ray.d) > 0){
-                geoNormal = -geoNormal;
-            }
+            geoNormal = its.shape->getNormal(ray, its.p, geoNormal);
+
             its.shFrame = its.geoFrame = elxFrame(geoNormal);
             its.wi = its.shFrame.toLocal(-ray.d);
         }
@@ -75,7 +73,7 @@ public:
 
     elxSpectrum evalEnv(const elxRay &ray) const {
         // hack: return a const value
-        return elxSpectrum(.5f);
+        return elxSpectrum(.7f);
     }
 
     elxSpectrum sampleEmitterDirect(elxDirectSamplingRecord &dRec,

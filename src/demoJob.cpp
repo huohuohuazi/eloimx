@@ -4,6 +4,7 @@
 #include <eloimx/integrators/path.h>
 #include <eloimx/bsdfs/diffuse.h>
 #include <eloimx/render/emitter.h>
+#include <eloimx/bsdfs/dielectric.h>
 
 #define INTEGRATE_DEBUG
 #ifndef INTEGRATE_DEBUG
@@ -19,7 +20,7 @@ void test() {
     }
     */
 #ifdef INTEGRATE_DEBUG
-    elxRenderJob job("cornellBox_100spp_10maxPath_sphere.tga", 400, 400, 100);
+    elxRenderJob job("cornellBox_200spp_10maxPath_Dielectricsphere5.tga", 400, 400, 200);
     elxMCIntegrator *integrator = new elxPathTracer(10, 1, true, false);
     elxCameraInterface *sensor = new elxPerspectiveCamera();
     RTCDevice device = rtcNewDevice(nullptr);
@@ -85,15 +86,37 @@ void test() {
     upRec->setBSDF(black);
     scene->attachGeometry(upRec);
 
-    /*--------------- sphere ---------------------*/
-    elxSphere *sph = new elxSphere(
+    /*--------------- sphere1 ---------------------*/
+    elxSphere *sph1 = new elxSphere(
         device,
-        Point3f(0, -0.5, 2),
+        Point3f(1.0f, -1.1, 2),
+        .4f
+    );
+    elxBSDF *water1 = new elxDielectric(elxSpectrum(1.0f), elxSpectrum(1.0f), 1.33);
+    sph1->setBSDF(water1);
+    scene->attachGeometry(sph1);
+
+    /*---------------- sphere2 --------------------*/
+    elxSphere *sph2 = new elxSphere(
+        device,
+        Point3f(-0.5f, -0.5, 2),
         1.f
     );
-    elxBSDF *gray = new elxDiffuse(elxSpectrum(.5f));
-    sph->setBSDF(gray);
-    scene->attachGeometry(sph);
+    
+    elxBSDF *sphereRed = new elxDiffuse(elxSpectrum(0.7f, 0.4f, 0.4f));
+    sph2->setBSDF(sphereRed);
+    scene->attachGeometry(sph2);
+
+    /*--------------- sphere3 ---------------------*/
+    elxSphere *sph3 = new elxSphere(
+        device,
+        Point3f(0.3f, -1.2, 1.25),
+        .25f
+    );
+    elxBSDF *water2 = new elxDielectric(elxSpectrum(1.0f), elxSpectrum(1.0f), 1.5);
+    sph3->setBSDF(water2);
+    scene->attachGeometry(sph3);
+
 
     /*--------------- light source -------------------------*/
     elxRectangle *light = new elxRectangle(
@@ -116,13 +139,13 @@ void test() {
     elxSphere sph(
         device,
         Point3f(0, 0, 0),
-        1.0f
+        2.0f
     );
 
     scene->attachGeometry(&sph);
     scene->commitScene();
 
-    elxRay ray(Point3f(0, 0, -2), Vec3f(0, 0, 2));
+    elxRay ray(Point3f(0, 0, 0), Vec3f(0, 0, 2));
     elxIntersection its;
     scene->rayIntersect(ray, its);
     std::cout<<its.toString()<<"\n";
